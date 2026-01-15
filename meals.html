@@ -2,87 +2,109 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meal Prep</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mon Meal Prep Perso</title>
     <style>
-        .recipe-card { background: white; padding: 15px; margin: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .shopping-list { background: #e1ffdc; padding: 15px; margin: 10px; border-radius: 12px; }
-        select { padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
-        button { background: #007aff; color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 10px; }
+        body { font-family: -apple-system, sans-serif; background: #f2f2f7; padding: 20px; color: #1c1c1e; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { font-size: 1.2rem; margin-top: 0; color: #007aff; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background: #34c759; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+        .btn-add { background: #007aff; }
+        .recipe-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .shopping-list { background: #fff9c4; border-left: 5px solid #fbc02d; }
     </style>
 </head>
 <body>
 
-    <nav style="padding: 10px;"><a href="index.html">← Retour Accueil</a></nav>
+    <a href="index.html" style="text-decoration:none;">← Accueil</a>
+    <h1>Meal Prep Designer</h1>
 
-    <h1>Mon Meal Prep</h1>
-
-    <div class="recipe-card">
-        <h3>Lunch (Midi) : Poulet Quinoa</h3>
-        <p><i>Valeurs (1 portion): 450 kcal | P: 30g | G: 40g</i></p>
-        <label>Nombre de jours (Midi): </label>
-        <select id="daysLunch">
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-        </select>
+    <div class="card">
+        <h2>➕ Ajouter une Recette</h2>
+        <input type="text" id="recName" placeholder="Nom de la recette (ex: Poulet Curry)">
+        <input type="text" id="recIng" placeholder="Ingrédients (ex: Poulet:150, Riz:60)">
+        <small>Format : Nom:Quantité, Nom:Quantité</small>
+        <input type="number" id="recCal" placeholder="Calories (kcal)">
+        <button class="btn-add" onclick="saveRecipe()">Enregistrer la Recette</button>
     </div>
 
-    <div class="recipe-card">
-        <h3>Diner (Soir) : Saumon Brocolis</h3>
-        <p><i>Valeurs (1 portion): 500 kcal | P: 35g | G: 10g</i></p>
-        <label>Nombre de jours (Soir): </label>
-        <select id="daysDiner">
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-        </select>
+    <div class="card">
+        <h2>🗓️ Planifier ma semaine</h2>
+        <div id="recipeSelectors">
+            </div>
+        <button onclick="generateList()">Générer Liste de Courses</button>
     </div>
 
-    <button onclick="calculerCourse()">Générer ma liste de courses</button>
-
-    <div class="shopping-list" id="listeResultat" style="display:none;">
-        <h2>🛒 Liste de courses</h2>
-        <ul id="items"></ul>
+    <div class="card shopping-list" id="finalList" style="display:none;">
+        <h2>🛒 Ma Liste de Courses</h2>
+        <ul id="listItems"></ul>
     </div>
 
     <script>
-        const recettes = {
-            lunch: { nom: "Poulet", ingredients: [{nom: "Blancs de poulet (g)", qte: 150}, {nom: "Quinoa (g)", qte: 60}] },
-            diner: { nom: "Saumon", ingredients: [{nom: "Pavé de saumon", qte: 1}, {nom: "Brocolis (g)", qte: 200}] }
-        };
+        let myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || [];
 
-        function calculerCourse() {
-            const nbLunch = document.getElementById('daysLunch').value;
-            const nbDiner = document.getElementById('daysDiner').value;
-            const listeUl = document.getElementById('items');
-            listeUl.innerHTML = ""; // Vide la liste précédente
+        function saveRecipe() {
+            const name = document.getElementById('recName').value;
+            const ingRaw = document.getElementById('recIng').value;
+            const cal = document.getElementById('recCal').value;
 
-            let total = {};
+            if(!name || !ingRaw) return alert("Remplissez le nom et les ingrédients");
 
-            // Calcul Lunch
-            recettes.lunch.ingredients.forEach(ing => {
-                total[ing.nom] = (total[ing.nom] || 0) + (ing.qte * nbLunch);
+            // Transformation du texte "Poulet:150, Riz:60" en objet utilisable
+            const ingredients = ingRaw.split(',').map(item => {
+                const [nom, qte] = item.split(':');
+                return { nom: nom.trim(), qte: parseFloat(qte) };
             });
 
-            // Calcul Diner
-            recettes.diner.ingredients.forEach(ing => {
-                total[ing.nom] = (total[ing.nom] || 0) + (ing.qte * nbDiner);
-            });
-
-            // Affichage
-            for (let [item, qte] of Object.entries(total)) {
-                if (qte > 0) {
-                    let li = document.createElement('li');
-                    li.innerText = `${item} : ${qte}`;
-                    listeUl.appendChild(li);
-                }
-            }
-            document.getElementById('listeResultat').style.display = "block";
+            const newRecipe = { name, ingredients, cal };
+            myRecipes.push(newRecipe);
+            localStorage.setItem('myRecipes', JSON.stringify(myRecipes));
+            
+            alert("Recette ajoutée !");
+            location.reload(); // Rafraîchit pour afficher la nouvelle recette
         }
+
+        function displaySelectors() {
+            const container = document.getElementById('recipeSelectors');
+            if(myRecipes.length === 0) container.innerHTML = "<p>Aucune recette enregistrée.</p>";
+            
+            myRecipes.forEach((rec, index) => {
+                container.innerHTML += `
+                    <div class="recipe-item">
+                        <span><strong>${rec.name}</strong> (${rec.cal} kcal)</span>
+                        <select id="qty-${index}" style="width: 80px;">
+                            <option value="0">0j</option>
+                            <option value="1">1j</option>
+                            <option value="2">2j</option>
+                            <option value="3">3j</option>
+                        </select>
+                    </div>
+                `;
+            });
+        }
+
+        function generateList() {
+            let totalShopping = {};
+            
+            myRecipes.forEach((rec, index) => {
+                const multiplier = document.getElementById(`qty-${index}`).value;
+                if(multiplier > 0) {
+                    rec.ingredients.forEach(ing => {
+                        totalShopping[ing.nom] = (totalShopping[ing.nom] || 0) + (ing.qte * multiplier);
+                    });
+                }
+            });
+
+            const listUl = document.getElementById('listItems');
+            listUl.innerHTML = "";
+            for (const [item, qte] of Object.entries(totalShopping)) {
+                listUl.innerHTML += `<li>${item} : <strong>${qte}</strong></li>`;
+            }
+            document.getElementById('finalList').style.display = "block";
+        }
+
+        displaySelectors();
     </script>
 </body>
 </html>
