@@ -3,81 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mon Meal Prep Perso</title>
+    <title>Meal Prep Pro</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f2f2f7; padding: 20px; color: #1c1c1e; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { font-size: 1.2rem; margin-top: 0; color: #007aff; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: #34c759; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 10px; }
-        .btn-add { background: #007aff; }
-        .recipe-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0; }
-        .shopping-list { background: #fff9c4; border-left: 5px solid #fbc02d; }
+        body { font-family: -apple-system, sans-serif; background: #f2f2f7; padding: 15px; color: #1c1c1e; padding-bottom: 50px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        h2 { font-size: 1.1rem; color: #007aff; margin-top: 0; }
+        
+        /* Style du formulaire d'ingrédients */
+        .ing-row { display: flex; gap: 5px; margin-bottom: 8px; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .ing-name { flex: 2; }
+        .ing-qty { flex: 1; }
+        .ing-unit { flex: 1; }
+
+        button { border: none; border-radius: 8px; padding: 12px; font-weight: bold; cursor: pointer; }
+        .btn-blue { background: #007aff; color: white; width: 100%; margin-top: 10px; }
+        .btn-green { background: #34c759; color: white; width: 100%; margin-top: 15px; }
+        .btn-outline { background: #e5e5ea; color: #007aff; font-size: 12px; padding: 5px 10px; }
+        
+        .recipe-selection { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .shopping-list { background: #fff9c4; border-left: 5px solid #fbc02d; list-style: none; padding-left: 15px; }
+        .shopping-list li { margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
-    <a href="index.html" style="text-decoration:none;">← Accueil</a>
-    <h1>Meal Prep Designer</h1>
+    <nav><a href="index.html" style="text-decoration:none;">← Accueil</a></nav>
+    <h1>Chef Prep 🍳</h1>
 
     <div class="card">
-        <h2>➕ Ajouter une Recette</h2>
-        <input type="text" id="recName" placeholder="Nom de la recette (ex: Poulet Curry)">
-        <input type="text" id="recIng" placeholder="Ingrédients (ex: Poulet:150, Riz:60)">
-        <small>Format : Nom:Quantité, Nom:Quantité</small>
-        <input type="number" id="recCal" placeholder="Calories (kcal)">
-        <button class="btn-add" onclick="saveRecipe()">Enregistrer la Recette</button>
+        <h2>➕ Nouvelle Recette</h2>
+        <input type="text" id="recName" placeholder="Nom du plat (ex: Risotto)">
+        <input type="number" id="recCal" placeholder="Calories par portion">
+        
+        <div id="ingredientsContainer">
+            <p style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Ingrédients :</p>
+            <div class="ing-row">
+                <input type="text" class="ing-name" placeholder="Nom">
+                <input type="number" class="ing-qty" placeholder="Qté">
+                <select class="ing-unit">
+                    <option value="g">g</option>
+                    <option value="ml">ml</option>
+                    <option value="tbsp">tbsp</option>
+                    <option value="tsp">tsp</option>
+                    <option value="unité">unité</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="btn-outline" onclick="addIngredientRow()">+ Ajouter un ingrédient</button>
+        <button class="btn-blue" onclick="saveRecipe()">Enregistrer la Recette</button>
     </div>
 
     <div class="card">
-        <h2>🗓️ Planifier ma semaine</h2>
-        <div id="recipeSelectors">
-            </div>
-        <button onclick="generateList()">Générer Liste de Courses</button>
+        <h2>🗓️ Planifier</h2>
+        <div id="recipeSelectors"></div>
+        <button class="btn-green" onclick="generateList()">🛒 Créer ma liste de courses</button>
     </div>
 
     <div class="card shopping-list" id="finalList" style="display:none;">
-        <h2>🛒 Ma Liste de Courses</h2>
-        <ul id="listItems"></ul>
+        <h2>Ma Liste de Courses</h2>
+        <ul id="listItems" style="padding: 0;"></ul>
+        <button class="btn-outline" style="margin-top: 10px;" onclick="document.getElementById('finalList').style.display='none'">Fermer</button>
     </div>
 
     <script>
         let myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || [];
 
+        function addIngredientRow() {
+            const container = document.getElementById('ingredientsContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'ing-row';
+            newRow.innerHTML = `
+                <input type="text" class="ing-name" placeholder="Nom">
+                <input type="number" class="ing-qty" placeholder="Qté">
+                <select class="ing-unit">
+                    <option value="g">g</option>
+                    <option value="ml">ml</option>
+                    <option value="tbsp">tbsp</option>
+                    <option value="tsp">tsp</option>
+                    <option value="unité">unité</option>
+                </select>
+            `;
+            container.appendChild(newRow);
+        }
+
         function saveRecipe() {
             const name = document.getElementById('recName').value;
-            const ingRaw = document.getElementById('recIng').value;
             const cal = document.getElementById('recCal').value;
-
-            if(!name || !ingRaw) return alert("Remplissez le nom et les ingrédients");
-
-            // Transformation du texte "Poulet:150, Riz:60" en objet utilisable
-            const ingredients = ingRaw.split(',').map(item => {
-                const [nom, qte] = item.split(':');
-                return { nom: nom.trim(), qte: parseFloat(qte) };
+            const rows = document.querySelectorAll('.ing-row');
+            
+            let ingredients = [];
+            rows.forEach(row => {
+                const n = row.querySelector('.ing-name').value;
+                const q = row.querySelector('.ing-qty').value;
+                const u = row.querySelector('.ing-unit').value;
+                if(n && q) ingredients.push({ nom: n, qte: parseFloat(q), unite: u });
             });
 
-            const newRecipe = { name, ingredients, cal };
-            myRecipes.push(newRecipe);
+            if(!name || ingredients.length === 0) return alert("Nom et ingrédients requis !");
+
+            myRecipes.push({ name, cal, ingredients });
             localStorage.setItem('myRecipes', JSON.stringify(myRecipes));
-            
-            alert("Recette ajoutée !");
-            location.reload(); // Rafraîchit pour afficher la nouvelle recette
+            alert("Recette sauvegardée !");
+            location.reload();
         }
 
         function displaySelectors() {
             const container = document.getElementById('recipeSelectors');
-            if(myRecipes.length === 0) container.innerHTML = "<p>Aucune recette enregistrée.</p>";
+            if(myRecipes.length === 0) return container.innerHTML = "<p>Ajoutez d'abord des recettes.</p>";
             
             myRecipes.forEach((rec, index) => {
                 container.innerHTML += `
-                    <div class="recipe-item">
+                    <div class="recipe-selection">
                         <span><strong>${rec.name}</strong> (${rec.cal} kcal)</span>
-                        <select id="qty-${index}" style="width: 80px;">
-                            <option value="0">0j</option>
-                            <option value="1">1j</option>
-                            <option value="2">2j</option>
-                            <option value="3">3j</option>
+                        <select id="qty-${index}" style="width: auto;">
+                            <option value="0">0 portion</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
                         </select>
                     </div>
                 `;
@@ -85,21 +130,24 @@
         }
 
         function generateList() {
-            let totalShopping = {};
-            
+            let totalShopping = {}; // Format: { "Sucre-g": 100, "Lait-ml": 200 }
+
             myRecipes.forEach((rec, index) => {
                 const multiplier = document.getElementById(`qty-${index}`).value;
                 if(multiplier > 0) {
                     rec.ingredients.forEach(ing => {
-                        totalShopping[ing.nom] = (totalShopping[ing.nom] || 0) + (ing.qte * multiplier);
+                        const key = `${ing.nom}|${ing.unite}`; // On groupe par nom ET unité
+                        totalShopping[key] = (totalShopping[key] || 0) + (ing.qte * multiplier);
                     });
                 }
             });
 
             const listUl = document.getElementById('listItems');
             listUl.innerHTML = "";
-            for (const [item, qte] of Object.entries(totalShopping)) {
-                listUl.innerHTML += `<li>${item} : <strong>${qte}</strong></li>`;
+            
+            for (const [key, qte] of Object.entries(totalShopping)) {
+                const [nom, unite] = key.split('|');
+                listUl.innerHTML += `<li>✅ ${nom} : <strong>${qte} ${unite}</strong></li>`;
             }
             document.getElementById('finalList').style.display = "block";
         }
