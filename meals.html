@@ -3,151 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Meal Prep | Notion Style</title>
+    <title>Meal Prep | Dark Mode</title>
     <style>
-        :root { --bg: #ffffff; --secondary: #f7f6f3; --border: #e9e9e7; --text: #37352f; --accent: #2383e2; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5; }
+        :root {
+            --bg: #191919;
+            --secondary: #202020;
+            --border: #2f2f2f;
+            --text: #ffffff;
+            --text-dim: #a4a29e;
+            --accent: #2383e2;
+            --card-bg: #252525;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif; 
+            background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5; 
+        }
         
-        h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        h2 { font-size: 1.1rem; font-weight: 600; margin-top: 30px; }
+        h1 { font-size: 1.6rem; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h2 { font-size: 1.1rem; color: var(--text-dim); margin-top: 30px; }
 
-        .section { margin-bottom: 40px; }
+        .section { margin-bottom: 30px; }
         
-        /* Input & Style Notion */
-        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid var(--border); border-radius: 4px; background: var(--secondary); font-size: 14px; color: var(--text); }
-        button { cursor: pointer; border-radius: 4px; padding: 8px 12px; font-size: 14px; transition: background 0.2s; border: 1px solid var(--border); background: white; }
-        button:hover { background: var(--secondary); }
-        .btn-primary { background: var(--accent); color: white; border: none; }
-        .btn-primary:hover { background: #1a6ab3; }
+        input, select { 
+            width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--border); 
+            border-radius: 6px; background: var(--secondary); font-size: 14px; color: var(--text); 
+        }
+        
+        button { 
+            cursor: pointer; border-radius: 6px; padding: 10px 15px; font-size: 14px; 
+            border: 1px solid var(--border); background: var(--card-bg); color: var(--text); 
+        }
+        .btn-primary { background: var(--accent); border: none; font-weight: 600; }
 
-        /* Grille Calendrier */
-        .calendar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
-        .day-card { border: 1px solid var(--border); padding: 10px; border-radius: 6px; background: var(--secondary); }
-        .day-name { font-weight: 600; font-size: 12px; text-transform: uppercase; color: #a4a29e; margin-bottom: 8px; }
+        /* Calendrier Style Sombre */
+        .calendar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .day-card { border: 1px solid var(--border); padding: 15px; border-radius: 8px; background: var(--card-bg); }
+        .day-name { font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .meal-slot { margin-bottom: 10px; }
+        .meal-label { font-size: 11px; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 2px; }
 
-        /* Liste Ingrédients Formulaire */
-        .ing-row { display: flex; gap: 5px; margin-bottom: 5px; }
-        
-        /* Recettes List */
-        .recipe-list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border); align-items: center; }
-        
-        /* Shopping List Checklist */
-        .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dotted var(--border); }
-        .check-item input[type="checkbox"] { width: auto; margin: 0; cursor: pointer; }
-        .check-item.done { text-decoration: line-through; opacity: 0.5; }
+        .recipe-list-item { 
+            display: flex; justify-content: space-between; padding: 12px; 
+            border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; background: var(--secondary);
+        }
+
+        .shopping-list { background: #2d2b1f; border-left: 4px solid #fbc02d; padding: 15px; border-radius: 8px; list-style: none; }
+        .check-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .check-item input[type="checkbox"] { width: auto; scale: 1.2; }
+        .done { text-decoration: line-through; opacity: 0.4; }
     </style>
 </head>
 <body>
 
-    <nav style="font-size: 14px; color: #a4a29e; margin-bottom: 20px;">
-        <a href="index.html" style="color: inherit; text-decoration: none;">🏠 Accueil</a> / 🥗 Meal Prep
+    <nav style="font-size: 14px; color: var(--text-dim); margin-bottom: 20px;">
+        <a href="index.html" style="color: inherit; text-decoration: none;">🏠 Home</a> / 🌑 Meal Prep
     </nav>
 
-    <h1>🍽️ Planificateur de Repas</h1>
+    <h1>🌑 Planning Hebdomadaire</h1>
 
     <div class="section">
-        <h2>Semaine</h2>
-        <div class="calendar-grid" id="calendar">
-            </div>
-        <button class="btn-primary" style="margin-top: 15px;" onclick="generateShoppingList()">🛒 Générer la liste de courses</button>
+        <div class="calendar-grid" id="calendar"></div>
+        <button class="btn-primary" style="margin-top: 20px; width: 100%;" onclick="generateShoppingList()">🛒 Générer la liste de courses</button>
     </div>
 
     <div id="shoppingSection" class="section" style="display:none;">
         <h2>🛒 Liste de Courses</h2>
-        <div id="shoppingListContainer" class="day-card" style="background: #fff;"></div>
+        <div id="shoppingListContainer" class="shopping-list"></div>
     </div>
 
     <div class="section">
-        <h2>Mes Recettes</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Mes Recettes</h2>
+            <button onclick="openRecipeForm()">+ Ajouter</button>
+        </div>
         <div id="recipeLibrary"></div>
-        <button onclick="openRecipeForm()" style="margin-top:10px;">+ Ajouter une nouvelle recette</button>
     </div>
 
-    <div id="recipeForm" class="section" style="display:none; border: 1px solid var(--border); padding: 20px; border-radius: 8px;">
-        <h2 id="formTitle">Nouvelle Recette</h2>
+    <div id="recipeForm" class="section" style="display:none; border: 1px solid var(--accent); padding: 20px; border-radius: 12px; background: var(--secondary);">
+        <h2 id="formTitle" style="color: var(--accent);">Nouvelle Recette</h2>
         <input type="hidden" id="editIndex">
-        <input type="text" id="recName" placeholder="Nom de la recette">
-        <input type="number" id="recCal" placeholder="Calories">
+        <input type="text" id="recName" placeholder="Nom du plat">
+        <input type="number" id="recCal" placeholder="Calories (kcal)">
         <div id="ingRows"></div>
-        <button onclick="addIngRow()">+ Ingrédient</button>
-        <div style="margin-top: 20px;">
-            <button class="btn-primary" onclick="saveRecipe()">Enregistrer</button>
-            <button onclick="closeRecipeForm()">Annuler</button>
+        <button onclick="addIngRow()" style="margin-top:10px; width: 100%;">+ Ajouter un ingrédient</button>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn-primary" style="flex: 2;" onclick="saveRecipe()">Enregistrer</button>
+            <button onclick="closeRecipeForm()" style="flex: 1;">Annuler</button>
         </div>
     </div>
 
     <script>
         let recipes = JSON.parse(localStorage.getItem('notionRecipes')) || [];
-        // Plan : { "Lundi": "id_recette", ... }
+        // Plan format: { "Lundi": { "matin": idx, "midi": idx, ... } }
         let plan = JSON.parse(localStorage.getItem('mealPlan')) || {};
         const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+        const slots = ["Matin", "Midi", "Snack", "Soir"];
 
-        // --- INITIALISATION ---
         function init() {
             renderCalendar();
             renderLibrary();
         }
 
-        // --- CALENDRIER ---
         function renderCalendar() {
             const cal = document.getElementById('calendar');
             cal.innerHTML = "";
             days.forEach(day => {
-                let options = recipes.map((r, i) => `<option value="${i}" ${plan[day] == i ? 'selected' : ''}>${r.name}</option>`).join('');
+                let slotHtml = "";
+                slots.forEach(slot => {
+                    const savedIdx = (plan[day] && plan[day][slot]) ? plan[day][slot] : "";
+                    let options = recipes.map((r, i) => `<option value="${i}" ${savedIdx == i ? 'selected' : ''}>${r.name}</option>`).join('');
+                    slotHtml += `
+                        <div class="meal-slot">
+                            <label class="meal-label">${slot}</label>
+                            <select onchange="updatePlan('${day}', '${slot}', this.value)">
+                                <option value="">-- Vide --</option>
+                                ${options}
+                            </select>
+                        </div>
+                    `;
+                });
+
                 cal.innerHTML += `
                     <div class="day-card">
                         <div class="day-name">${day}</div>
-                        <select onchange="updatePlan('${day}', this.value)">
-                            <option value="">-- Rien --</option>
-                            ${options}
-                        </select>
+                        ${slotHtml}
                     </div>
                 `;
             });
         }
 
-        function updatePlan(day, recipeIndex) {
-            if(recipeIndex === "") delete plan[day];
-            else plan[day] = recipeIndex;
+        function updatePlan(day, slot, recipeIndex) {
+            if (!plan[day]) plan[day] = {};
+            if (recipeIndex === "") delete plan[day][slot];
+            else plan[day][slot] = recipeIndex;
             localStorage.setItem('mealPlan', JSON.stringify(plan));
         }
 
-        // --- RECETTES ---
         function renderLibrary() {
             const lib = document.getElementById('recipeLibrary');
-            lib.innerHTML = recipes.length === 0 ? "<p style='color:#a4a29e'>Aucune recette.</p>" : "";
+            lib.innerHTML = recipes.length === 0 ? "<p style='color:var(--text-dim)'>Aucune recette enregistrée.</p>" : "";
             recipes.forEach((r, i) => {
                 lib.innerHTML += `
                     <div class="recipe-list-item">
-                        <span>${r.name} <small>(${r.cal} kcal)</small></span>
+                        <span><strong>${r.name}</strong> <small style="color:var(--text-dim)">• ${r.cal} kcal</small></span>
                         <div>
-                            <button onclick="editRecipe(${i})">Modifier</button>
-                            <button onclick="deleteRecipe(${i})" style="color:red">✕</button>
+                            <button onclick="editRecipe(${i})">Edit</button>
+                            <button onclick="deleteRecipe(${i})" style="border-color: #ff453a; color: #ff453a;">✕</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        function openRecipeForm() {
-            document.getElementById('recipeForm').style.display = "block";
-            document.getElementById('editIndex').value = "";
-            document.getElementById('recName').value = "";
-            document.getElementById('ingRows').innerHTML = "";
-            addIngRow();
-        }
-
         function addIngRow(name="", qty="", unit="g") {
             const div = document.createElement('div');
             div.className = 'ing-row';
             div.innerHTML = `
-                <input type="text" placeholder="Ingrédient" value="${name}" class="i-n">
-                <input type="number" placeholder="Qté" value="${qty}" class="i-q" style="width:70px">
-                <select class="i-u" style="width:70px">
+                <input type="text" placeholder="Ingrédient" value="${name}" class="i-n" style="flex:2">
+                <input type="number" placeholder="Qté" value="${qty}" class="i-q" style="flex:1">
+                <select class="i-u" style="flex:1">
                     <option ${unit=='g'?'selected':''}>g</option>
                     <option ${unit=='ml'?'selected':''}>ml</option>
-                    <option ${unit=='unité'?'selected':''}>unité</option>
+                    <option ${unit=='tsp'?'selected':''}>tsp</option>
                     <option ${unit=='tbsp'?'selected':''}>tbsp</option>
+                    <option ${unit=='unité'?'selected':''}>unité</option>
                 </select>
             `;
             document.getElementById('ingRows').appendChild(div);
@@ -166,12 +186,22 @@
                 if(n && q) ings.push({n, q: parseFloat(q), u});
             });
 
+            if(!name) return alert("Nom requis");
             const data = {name, cal, ings};
             if(idx !== "") recipes[idx] = data;
             else recipes.push(data);
 
             localStorage.setItem('notionRecipes', JSON.stringify(recipes));
             location.reload();
+        }
+
+        function openRecipeForm() {
+            document.getElementById('recipeForm').style.display = "block";
+            document.getElementById('editIndex').value = "";
+            document.getElementById('recName').value = "";
+            document.getElementById('ingRows').innerHTML = "";
+            addIngRow();
+            window.scrollTo(0, document.getElementById('recipeForm').offsetTop);
         }
 
         function editRecipe(i) {
@@ -192,21 +222,24 @@
             }
         }
 
-        // --- LISTE DE COURSES ---
         function generateShoppingList() {
             let totals = {};
-            Object.values(plan).forEach(idx => {
-                const rec = recipes[idx];
-                if(rec) {
-                    rec.ings.forEach(ing => {
-                        const key = `${ing.n}|${ing.u}`;
-                        totals[key] = (totals[key] || 0) + ing.q;
-                    });
-                }
+            Object.values(plan).forEach(daySlots => {
+                Object.values(daySlots).forEach(idx => {
+                    const rec = recipes[idx];
+                    if(rec) {
+                        rec.ings.forEach(ing => {
+                            const key = `${ing.n}|${ing.u}`;
+                            totals[key] = (totals[key] || 0) + ing.q;
+                        });
+                    }
+                });
             });
 
             const container = document.getElementById('shoppingListContainer');
             container.innerHTML = "";
+            if (Object.keys(totals).length === 0) container.innerHTML = "Aucun ingrédient à acheter.";
+            
             for (let [k, q] of Object.entries(totals)) {
                 const [n, u] = k.split('|');
                 container.innerHTML += `
