@@ -3,156 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Meal Prep Pro</title>
+    <title>Meal Prep | Notion Style</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #f2f2f7; padding: 15px; color: #1c1c1e; padding-bottom: 50px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        h2 { font-size: 1.1rem; color: #007aff; margin-top: 0; }
+        :root { --bg: #ffffff; --secondary: #f7f6f3; --border: #e9e9e7; --text: #37352f; --accent: #2383e2; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5; }
         
-        /* Style du formulaire d'ingrédients */
-        .ing-row { display: flex; gap: 5px; margin-bottom: 8px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        .ing-name { flex: 2; }
-        .ing-qty { flex: 1; }
-        .ing-unit { flex: 1; }
+        h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        h2 { font-size: 1.1rem; font-weight: 600; margin-top: 30px; }
 
-        button { border: none; border-radius: 8px; padding: 12px; font-weight: bold; cursor: pointer; }
-        .btn-blue { background: #007aff; color: white; width: 100%; margin-top: 10px; }
-        .btn-green { background: #34c759; color: white; width: 100%; margin-top: 15px; }
-        .btn-outline { background: #e5e5ea; color: #007aff; font-size: 12px; padding: 5px 10px; }
+        .section { margin-bottom: 40px; }
         
-        .recipe-selection { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .shopping-list { background: #fff9c4; border-left: 5px solid #fbc02d; list-style: none; padding-left: 15px; }
-        .shopping-list li { margin-bottom: 8px; }
+        /* Input & Style Notion */
+        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid var(--border); border-radius: 4px; background: var(--secondary); font-size: 14px; color: var(--text); }
+        button { cursor: pointer; border-radius: 4px; padding: 8px 12px; font-size: 14px; transition: background 0.2s; border: 1px solid var(--border); background: white; }
+        button:hover { background: var(--secondary); }
+        .btn-primary { background: var(--accent); color: white; border: none; }
+        .btn-primary:hover { background: #1a6ab3; }
+
+        /* Grille Calendrier */
+        .calendar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+        .day-card { border: 1px solid var(--border); padding: 10px; border-radius: 6px; background: var(--secondary); }
+        .day-name { font-weight: 600; font-size: 12px; text-transform: uppercase; color: #a4a29e; margin-bottom: 8px; }
+
+        /* Liste Ingrédients Formulaire */
+        .ing-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        
+        /* Recettes List */
+        .recipe-list-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border); align-items: center; }
+        
+        /* Shopping List Checklist */
+        .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dotted var(--border); }
+        .check-item input[type="checkbox"] { width: auto; margin: 0; cursor: pointer; }
+        .check-item.done { text-decoration: line-through; opacity: 0.5; }
     </style>
 </head>
 <body>
 
-    <nav><a href="index.html" style="text-decoration:none;">← Accueil</a></nav>
-    <h1>Chef Prep 🍳</h1>
+    <nav style="font-size: 14px; color: #a4a29e; margin-bottom: 20px;">
+        <a href="index.html" style="color: inherit; text-decoration: none;">🏠 Accueil</a> / 🥗 Meal Prep
+    </nav>
 
-    <div class="card">
-        <h2>➕ Nouvelle Recette</h2>
-        <input type="text" id="recName" placeholder="Nom du plat (ex: Risotto)">
-        <input type="number" id="recCal" placeholder="Calories par portion">
-        
-        <div id="ingredientsContainer">
-            <p style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">Ingrédients :</p>
-            <div class="ing-row">
-                <input type="text" class="ing-name" placeholder="Nom">
-                <input type="number" class="ing-qty" placeholder="Qté">
-                <select class="ing-unit">
-                    <option value="g">g</option>
-                    <option value="ml">ml</option>
-                    <option value="tbsp">tbsp</option>
-                    <option value="tsp">tsp</option>
-                    <option value="unité">unité</option>
-                </select>
+    <h1>🍽️ Planificateur de Repas</h1>
+
+    <div class="section">
+        <h2>Semaine</h2>
+        <div class="calendar-grid" id="calendar">
             </div>
+        <button class="btn-primary" style="margin-top: 15px;" onclick="generateShoppingList()">🛒 Générer la liste de courses</button>
+    </div>
+
+    <div id="shoppingSection" class="section" style="display:none;">
+        <h2>🛒 Liste de Courses</h2>
+        <div id="shoppingListContainer" class="day-card" style="background: #fff;"></div>
+    </div>
+
+    <div class="section">
+        <h2>Mes Recettes</h2>
+        <div id="recipeLibrary"></div>
+        <button onclick="openRecipeForm()" style="margin-top:10px;">+ Ajouter une nouvelle recette</button>
+    </div>
+
+    <div id="recipeForm" class="section" style="display:none; border: 1px solid var(--border); padding: 20px; border-radius: 8px;">
+        <h2 id="formTitle">Nouvelle Recette</h2>
+        <input type="hidden" id="editIndex">
+        <input type="text" id="recName" placeholder="Nom de la recette">
+        <input type="number" id="recCal" placeholder="Calories">
+        <div id="ingRows"></div>
+        <button onclick="addIngRow()">+ Ingrédient</button>
+        <div style="margin-top: 20px;">
+            <button class="btn-primary" onclick="saveRecipe()">Enregistrer</button>
+            <button onclick="closeRecipeForm()">Annuler</button>
         </div>
-        
-        <button class="btn-outline" onclick="addIngredientRow()">+ Ajouter un ingrédient</button>
-        <button class="btn-blue" onclick="saveRecipe()">Enregistrer la Recette</button>
-    </div>
-
-    <div class="card">
-        <h2>🗓️ Planifier</h2>
-        <div id="recipeSelectors"></div>
-        <button class="btn-green" onclick="generateList()">🛒 Créer ma liste de courses</button>
-    </div>
-
-    <div class="card shopping-list" id="finalList" style="display:none;">
-        <h2>Ma Liste de Courses</h2>
-        <ul id="listItems" style="padding: 0;"></ul>
-        <button class="btn-outline" style="margin-top: 10px;" onclick="document.getElementById('finalList').style.display='none'">Fermer</button>
     </div>
 
     <script>
-        let myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || [];
+        let recipes = JSON.parse(localStorage.getItem('notionRecipes')) || [];
+        // Plan : { "Lundi": "id_recette", ... }
+        let plan = JSON.parse(localStorage.getItem('mealPlan')) || {};
+        const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
-        function addIngredientRow() {
-            const container = document.getElementById('ingredientsContainer');
-            const newRow = document.createElement('div');
-            newRow.className = 'ing-row';
-            newRow.innerHTML = `
-                <input type="text" class="ing-name" placeholder="Nom">
-                <input type="number" class="ing-qty" placeholder="Qté">
-                <select class="ing-unit">
-                    <option value="g">g</option>
-                    <option value="ml">ml</option>
-                    <option value="tbsp">tbsp</option>
-                    <option value="tsp">tsp</option>
-                    <option value="unité">unité</option>
-                </select>
-            `;
-            container.appendChild(newRow);
+        // --- INITIALISATION ---
+        function init() {
+            renderCalendar();
+            renderLibrary();
         }
 
-        function saveRecipe() {
-            const name = document.getElementById('recName').value;
-            const cal = document.getElementById('recCal').value;
-            const rows = document.querySelectorAll('.ing-row');
-            
-            let ingredients = [];
-            rows.forEach(row => {
-                const n = row.querySelector('.ing-name').value;
-                const q = row.querySelector('.ing-qty').value;
-                const u = row.querySelector('.ing-unit').value;
-                if(n && q) ingredients.push({ nom: n, qte: parseFloat(q), unite: u });
-            });
-
-            if(!name || ingredients.length === 0) return alert("Nom et ingrédients requis !");
-
-            myRecipes.push({ name, cal, ingredients });
-            localStorage.setItem('myRecipes', JSON.stringify(myRecipes));
-            alert("Recette sauvegardée !");
-            location.reload();
-        }
-
-        function displaySelectors() {
-            const container = document.getElementById('recipeSelectors');
-            if(myRecipes.length === 0) return container.innerHTML = "<p>Ajoutez d'abord des recettes.</p>";
-            
-            myRecipes.forEach((rec, index) => {
-                container.innerHTML += `
-                    <div class="recipe-selection">
-                        <span><strong>${rec.name}</strong> (${rec.cal} kcal)</span>
-                        <select id="qty-${index}" style="width: auto;">
-                            <option value="0">0 portion</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
+        // --- CALENDRIER ---
+        function renderCalendar() {
+            const cal = document.getElementById('calendar');
+            cal.innerHTML = "";
+            days.forEach(day => {
+                let options = recipes.map((r, i) => `<option value="${i}" ${plan[day] == i ? 'selected' : ''}>${r.name}</option>`).join('');
+                cal.innerHTML += `
+                    <div class="day-card">
+                        <div class="day-name">${day}</div>
+                        <select onchange="updatePlan('${day}', this.value)">
+                            <option value="">-- Rien --</option>
+                            ${options}
                         </select>
                     </div>
                 `;
             });
         }
 
-        function generateList() {
-            let totalShopping = {}; // Format: { "Sucre-g": 100, "Lait-ml": 200 }
+        function updatePlan(day, recipeIndex) {
+            if(recipeIndex === "") delete plan[day];
+            else plan[day] = recipeIndex;
+            localStorage.setItem('mealPlan', JSON.stringify(plan));
+        }
 
-            myRecipes.forEach((rec, index) => {
-                const multiplier = document.getElementById(`qty-${index}`).value;
-                if(multiplier > 0) {
-                    rec.ingredients.forEach(ing => {
-                        const key = `${ing.nom}|${ing.unite}`; // On groupe par nom ET unité
-                        totalShopping[key] = (totalShopping[key] || 0) + (ing.qte * multiplier);
+        // --- RECETTES ---
+        function renderLibrary() {
+            const lib = document.getElementById('recipeLibrary');
+            lib.innerHTML = recipes.length === 0 ? "<p style='color:#a4a29e'>Aucune recette.</p>" : "";
+            recipes.forEach((r, i) => {
+                lib.innerHTML += `
+                    <div class="recipe-list-item">
+                        <span>${r.name} <small>(${r.cal} kcal)</small></span>
+                        <div>
+                            <button onclick="editRecipe(${i})">Modifier</button>
+                            <button onclick="deleteRecipe(${i})" style="color:red">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openRecipeForm() {
+            document.getElementById('recipeForm').style.display = "block";
+            document.getElementById('editIndex').value = "";
+            document.getElementById('recName').value = "";
+            document.getElementById('ingRows').innerHTML = "";
+            addIngRow();
+        }
+
+        function addIngRow(name="", qty="", unit="g") {
+            const div = document.createElement('div');
+            div.className = 'ing-row';
+            div.innerHTML = `
+                <input type="text" placeholder="Ingrédient" value="${name}" class="i-n">
+                <input type="number" placeholder="Qté" value="${qty}" class="i-q" style="width:70px">
+                <select class="i-u" style="width:70px">
+                    <option ${unit=='g'?'selected':''}>g</option>
+                    <option ${unit=='ml'?'selected':''}>ml</option>
+                    <option ${unit=='unité'?'selected':''}>unité</option>
+                    <option ${unit=='tbsp'?'selected':''}>tbsp</option>
+                </select>
+            `;
+            document.getElementById('ingRows').appendChild(div);
+        }
+
+        function saveRecipe() {
+            const idx = document.getElementById('editIndex').value;
+            const name = document.getElementById('recName').value;
+            const cal = document.getElementById('recCal').value;
+            const rows = document.querySelectorAll('.ing-row');
+            let ings = [];
+            rows.forEach(r => {
+                const n = r.querySelector('.i-n').value;
+                const q = r.querySelector('.i-q').value;
+                const u = r.querySelector('.i-u').value;
+                if(n && q) ings.push({n, q: parseFloat(q), u});
+            });
+
+            const data = {name, cal, ings};
+            if(idx !== "") recipes[idx] = data;
+            else recipes.push(data);
+
+            localStorage.setItem('notionRecipes', JSON.stringify(recipes));
+            location.reload();
+        }
+
+        function editRecipe(i) {
+            openRecipeForm();
+            document.getElementById('formTitle').innerText = "Modifier la recette";
+            document.getElementById('editIndex').value = i;
+            document.getElementById('recName').value = recipes[i].name;
+            document.getElementById('recCal').value = recipes[i].cal;
+            document.getElementById('ingRows').innerHTML = "";
+            recipes[i].ings.forEach(ing => addIngRow(ing.n, ing.q, ing.u));
+        }
+
+        function deleteRecipe(i) {
+            if(confirm("Supprimer cette recette ?")) {
+                recipes.splice(i, 1);
+                localStorage.setItem('notionRecipes', JSON.stringify(recipes));
+                location.reload();
+            }
+        }
+
+        // --- LISTE DE COURSES ---
+        function generateShoppingList() {
+            let totals = {};
+            Object.values(plan).forEach(idx => {
+                const rec = recipes[idx];
+                if(rec) {
+                    rec.ings.forEach(ing => {
+                        const key = `${ing.n}|${ing.u}`;
+                        totals[key] = (totals[key] || 0) + ing.q;
                     });
                 }
             });
 
-            const listUl = document.getElementById('listItems');
-            listUl.innerHTML = "";
-            
-            for (const [key, qte] of Object.entries(totalShopping)) {
-                const [nom, unite] = key.split('|');
-                listUl.innerHTML += `<li>✅ ${nom} : <strong>${qte} ${unite}</strong></li>`;
+            const container = document.getElementById('shoppingListContainer');
+            container.innerHTML = "";
+            for (let [k, q] of Object.entries(totals)) {
+                const [n, u] = k.split('|');
+                container.innerHTML += `
+                    <div class="check-item">
+                        <input type="checkbox" onchange="this.parentElement.classList.toggle('done')">
+                        <span>${n} : <strong>${q} ${u}</strong></span>
+                    </div>
+                `;
             }
-            document.getElementById('finalList').style.display = "block";
+            document.getElementById('shoppingSection').style.display = "block";
+            window.scrollTo(0, document.getElementById('shoppingSection').offsetTop);
         }
 
-        displaySelectors();
+        function closeRecipeForm() { document.getElementById('recipeForm').style.display = "none"; }
+
+        init();
     </script>
 </body>
 </html>
