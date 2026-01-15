@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Prep</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .recipe-card { background: white; padding: 15px; margin: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .shopping-list { background: #e1ffdc; padding: 15px; margin: 10px; border-radius: 12px; }
+        select { padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
+        button { background: #007aff; color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav style="padding: 10px;"><a href="index.html">← Retour Accueil</a></nav>
+
+    <h1>Mon Meal Prep</h1>
+
+    <div class="recipe-card">
+        <h3>Lunch (Midi) : Poulet Quinoa</h3>
+        <p><i>Valeurs (1 portion): 450 kcal | P: 30g | G: 40g</i></p>
+        <label>Nombre de jours (Midi): </label>
+        <select id="daysLunch">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+    </div>
+
+    <div class="recipe-card">
+        <h3>Diner (Soir) : Saumon Brocolis</h3>
+        <p><i>Valeurs (1 portion): 500 kcal | P: 35g | G: 10g</i></p>
+        <label>Nombre de jours (Soir): </label>
+        <select id="daysDiner">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+    </div>
+
+    <button onclick="calculerCourse()">Générer ma liste de courses</button>
+
+    <div class="shopping-list" id="listeResultat" style="display:none;">
+        <h2>🛒 Liste de courses</h2>
+        <ul id="items"></ul>
+    </div>
+
+    <script>
+        const recettes = {
+            lunch: { nom: "Poulet", ingredients: [{nom: "Blancs de poulet (g)", qte: 150}, {nom: "Quinoa (g)", qte: 60}] },
+            diner: { nom: "Saumon", ingredients: [{nom: "Pavé de saumon", qte: 1}, {nom: "Brocolis (g)", qte: 200}] }
+        };
+
+        function calculerCourse() {
+            const nbLunch = document.getElementById('daysLunch').value;
+            const nbDiner = document.getElementById('daysDiner').value;
+            const listeUl = document.getElementById('items');
+            listeUl.innerHTML = ""; // Vide la liste précédente
+
+            let total = {};
+
+            // Calcul Lunch
+            recettes.lunch.ingredients.forEach(ing => {
+                total[ing.nom] = (total[ing.nom] || 0) + (ing.qte * nbLunch);
+            });
+
+            // Calcul Diner
+            recettes.diner.ingredients.forEach(ing => {
+                total[ing.nom] = (total[ing.nom] || 0) + (ing.qte * nbDiner);
+            });
+
+            // Affichage
+            for (let [item, qte] of Object.entries(total)) {
+                if (qte > 0) {
+                    let li = document.createElement('li');
+                    li.innerText = `${item} : ${qte}`;
+                    listeUl.appendChild(li);
+                }
+            }
+            document.getElementById('listeResultat').style.display = "block";
+        }
+    </script>
+</body>
+</html>
