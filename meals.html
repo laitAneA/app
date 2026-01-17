@@ -1,450 +1,453 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meal Planner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Prosper Meal Plan</title>
     <style>
         :root {
-            --bg: #121212;
-            --surface: #1e1e1e;
-            --surface-light: #2c2c2c;
-            --primary: #3a86ff;
-            --text: #e0e0e0;
-            --text-dim: #a0a0a0;
-            --border: #333;
-            --danger: #ff5c5c;
-            --success: #00b894;
+            --bg: #000000;
+            --card: #1c1c1e;
+            --accent: #6e56cf; /* Prosper Purple */
+            --accent-dim: #2f265f;
+            --text: #ffffff;
+            --text-sec: #8e8e93;
+            --border: #2c2c2e;
+            --success: #32d74b;
+            --danger: #ff453a;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px 20px 100px 20px; /* Padding bas pour le bouton fixe */
-            -webkit-font-smoothing: antialiased;
+            padding: 0;
+            padding-bottom: 90px; /* Space for dock */
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.5px; }
-        h1 { font-size: 24px; margin-bottom: 20px; }
-        h2 { font-size: 18px; color: var(--text-dim); margin-bottom: 15px; margin-top: 30px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        /* --- DASHBOARD HEADER --- */
+        .dashboard {
+            padding: 50px 20px 20px 20px;
+            background: linear-gradient(180deg, rgba(30,30,30,1) 0%, rgba(0,0,0,0) 100%);
+        }
+        .date-header { font-size: 32px; font-weight: 800; margin-bottom: 5px; }
+        .subtitle { color: var(--text-sec); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
-        /* --- CARTE JOUR --- */
-        .day-container {
-            background: var(--surface);
-            border-radius: 12px;
+        .stats-row {
+            display: flex; gap: 10px; margin-top: 20px;
+        }
+        .stat-card {
+            flex: 1; background: var(--card); border-radius: 12px; padding: 12px;
+            text-align: center; border: 1px solid var(--border);
+        }
+        .stat-val { font-size: 18px; font-weight: 700; display: block; }
+        .stat-label { font-size: 11px; color: var(--text-sec); text-transform: uppercase; }
+
+        /* --- TIMELINE VIEW --- */
+        .timeline-container { padding: 10px 20px; position: relative; }
+        
+        /* The vertical line */
+        .timeline-container::before {
+            content: ''; position: absolute; left: 35px; top: 0; bottom: 0;
+            width: 2px; background: var(--border); z-index: 0;
+        }
+
+        .time-slot {
+            display: flex; align-items: flex-start; margin-bottom: 25px; position: relative; z-index: 1;
+        }
+        
+        .time-label {
+            width: 40px; font-size: 12px; color: var(--text-sec); font-weight: 600; padding-top: 15px; background: var(--bg);
+        }
+
+        .meal-card {
+            flex: 1; margin-left: 15px;
+            background: var(--card); border-radius: 16px; padding: 15px;
+            border: 1px solid var(--border);
+            position: relative; transition: transform 0.1s;
+        }
+        .meal-card:active { transform: scale(0.98); }
+
+        .meal-card.empty {
+            border: 1px dashed var(--border); background: transparent; color: var(--text-sec);
+            display: flex; align-items: center; justify-content: center; height: 50px;
+        }
+
+        .meal-title { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+        .meal-info { font-size: 13px; color: var(--text-sec); }
+        .meal-macros { font-size: 11px; color: var(--accent); margin-top: 8px; font-weight: 600; }
+
+        /* --- BOTTOM NAVIGATION (DOCK) --- */
+        .dock {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: rgba(28, 28, 30, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
             padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-around;
             border: 1px solid var(--border);
-        }
-
-        .day-header {
-            font-size: 16px;
-            color: var(--primary);
-            font-weight: 700;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .slot-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            gap: 10px;
-        }
-
-        .slot-label {
-            width: 50px;
-            font-size: 12px;
-            color: var(--text-dim);
-            font-weight: 500;
-        }
-
-        select {
-            flex: 1;
-            background: var(--bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 14px;
-            appearance: none; /* Enlève le style par défaut moche */
-            outline: none;
-            /* Petite flèche custom CSS */
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23A0A0A0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px top 50%;
-            background-size: 10px auto;
-        }
-        select:focus { border-color: var(--primary); }
-
-        /* --- BOUTON FIXE EN BAS --- */
-        .fab-container {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             z-index: 100;
         }
-
-        .btn-main {
-            background: var(--primary);
-            color: white;
-            flex: 2;
-            padding: 15px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 16px;
-            box-shadow: 0 4px 12px rgba(58, 134, 255, 0.4);
-            cursor: pointer;
+        .dock-btn {
+            background: none; border: none; color: var(--text-sec);
+            font-size: 24px; cursor: pointer; position: relative;
         }
-        .btn-secondary {
-            background: var(--surface-light);
-            color: var(--text);
-            flex: 1;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-weight: 600;
-            cursor: pointer;
+        .dock-btn.active { color: var(--text); }
+        .dock-btn.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 4px; height: 4px; background: var(--accent); border-radius: 50%;
         }
 
-        /* --- LISTE DE RECETTES --- */
-        .recipe-pill {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .recipe-pill span { font-weight: 500; }
-        .recipe-pill small { color: var(--text-dim); margin-left: 8px; }
-        .action-btn { background: none; border: none; font-size: 14px; cursor: pointer; padding: 5px; }
-
-        /* --- MODAL / FORMULAIRE --- */
-        #modalOverlay {
+        /* --- MODALS (Drawers) --- */
+        .drawer-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            z-index: 200;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            background: rgba(0,0,0,0.6); z-index: 200;
+            display: none; align-items: flex-end;
         }
-        .modal-content {
-            background: var(--surface);
-            width: 100%;
-            max-width: 500px;
-            border-radius: 16px;
-            padding: 20px;
-            max-height: 85vh;
-            overflow-y: auto;
-            border: 1px solid var(--border);
+        .drawer {
+            background: var(--card); width: 100%; border-radius: 24px 24px 0 0;
+            padding: 25px; box-sizing: border-box;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-height: 85vh; overflow-y: auto;
         }
+        .drawer.open { transform: translateY(0); }
 
-        input {
-            width: 100%; box-sizing: border-box;
-            background: var(--bg); border: 1px solid var(--border);
-            color: white; padding: 12px; border-radius: 8px; margin-bottom: 10px;
+        /* Form Inputs */
+        input, select {
+            width: 100%; padding: 14px; margin-bottom: 12px;
+            background: #2c2c2e; border: none; border-radius: 10px;
+            color: white; font-size: 16px; box-sizing: border-box;
         }
+        input:focus { outline: 2px solid var(--accent); }
 
-        /* Liste courses */
-        .shopping-list-modal {
-            background: #111;
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
+        .btn-primary {
+            width: 100%; background: var(--accent); color: white;
+            padding: 16px; border-radius: 12px; border: none;
+            font-weight: 700; font-size: 16px; margin-top: 10px;
         }
-        .check-item {
-            display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #222;
-        }
-        .check-item label { margin-left: 12px; cursor: pointer; flex: 1; }
-        .check-item input { width: 20px; height: 20px; margin: 0; accent-color: var(--success); }
-        .done label { text-decoration: line-through; color: var(--text-dim); }
-
-        /* Ingredients Row */
+        
+        /* Ingredient Row in Form */
         .ing-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .ing-name { flex: 2; }
-        .ing-qty { flex: 1; }
-        .ing-unit { flex: 1; background: var(--bg); color: white; border: 1px solid var(--border); border-radius: 8px; }
+        .ing-unit { flex: 0.5; }
 
+        /* Shopping List Style */
+        .check-item {
+            display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border);
+        }
+        .check-item input { width: 24px; height: 24px; margin-right: 15px; accent-color: var(--accent); }
+        .check-item.done { opacity: 0.3; text-decoration: line-through; }
     </style>
 </head>
 <body>
 
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-        <h1>🍽️ Meal Prep</h1>
-        <a href="index.html" style="color: var(--text-dim); text-decoration: none; font-size: 14px;">Quitter</a>
-    </div>
-
-    <div id="calendarArea">
-        </div>
-
-    <h2>Mes Recettes</h2>
-    <div id="libraryArea" style="margin-bottom: 80px;"></div>
-
-    <div class="fab-container">
-        <button class="btn-secondary" onclick="openRecipeForm()">+ Recette</button>
-        <button class="btn-main" onclick="generateShoppingList()">Liste de courses</button>
-    </div>
-
-    <div id="modalOverlay">
-        <div class="modal-content" id="formContent">
-            <h2 id="modalTitle" style="margin-top:0">Nouvelle Recette</h2>
-            <input type="hidden" id="editIndex">
-            <input type="text" id="recName" placeholder="Nom du plat (ex: Pâtes Carbo)">
-            <input type="number" id="recCal" placeholder="Calories (kcal)">
+    <div id="view-timeline">
+        <div class="dashboard">
+            <div class="subtitle">Today's Plan</div>
+            <div class="date-header" id="currentDate">Monday</div>
             
-            <div style="margin: 15px 0;">
-                <label style="font-size: 12px; color: var(--text-dim); text-transform: uppercase;">Ingrédients</label>
-                <div id="ingRowsContainer"></div>
-                <button onclick="addIngRow()" style="width:100%; padding: 8px; background: var(--bg); border: 1px dashed var(--border); color: var(--text-dim); border-radius: 6px; margin-top: 5px;">+ Ajouter ingrédient</button>
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn-secondary" onclick="closeModal()">Annuler</button>
-                <button class="btn-main" onclick="saveRecipe()">Enregistrer</button>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <span class="stat-val" id="totalCal">0</span>
+                    <span class="stat-label">Kcal</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-val" id="totalItems">0</span>
+                    <span class="stat-label">Ingred.</span>
+                </div>
             </div>
         </div>
-        
-        <div class="modal-content" id="listContent" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="margin:0; color: var(--success);">🛒 Courses</h2>
-                <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:20px;">✕</button>
+
+        <div class="timeline-container" id="timeline">
             </div>
-            <div id="shoppingListItems" style="margin-top: 20px;"></div>
+    </div>
+
+    <div id="view-shopping" style="display:none; padding: 50px 20px;">
+        <div class="date-header">Shopping List</div>
+        <div class="subtitle" style="margin-bottom: 20px;">Based on your schedule</div>
+        <div id="shoppingListContainer"></div>
+    </div>
+
+    <div id="view-recipes" style="display:none; padding: 50px 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="date-header">Recipes</div>
+            <button onclick="openRecipeDrawer()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:600;">+ New</button>
+        </div>
+        <div id="recipeListContainer" style="margin-top:20px;"></div>
+    </div>
+
+    <div class="dock">
+        <button class="dock-btn active" onclick="switchView('timeline', this)">📅</button>
+        <button class="dock-btn" onclick="switchView('recipes', this)">📖</button>
+        <button class="dock-btn" onclick="switchView('shopping', this)">🛒</button>
+    </div>
+
+    <div id="drawer-select" class="drawer-overlay" onclick="closeDrawer('drawer-select')">
+        <div class="drawer" onclick="event.stopPropagation()">
+            <h2 style="margin-top:0">Add to <span id="selectedSlotTime"></span></h2>
+            <div id="selectorList" style="display:grid; gap:10px;"></div>
+            <button class="btn-primary" style="background:var(--card); border:1px solid var(--border); margin-top:10px" onclick="clearSlot()">Clear Slot</button>
+        </div>
+    </div>
+
+    <div id="drawer-recipe" class="drawer-overlay" onclick="closeDrawer('drawer-recipe')">
+        <div class="drawer" onclick="event.stopPropagation()">
+            <h2 style="margin-top:0">Create Recipe</h2>
+            <input type="text" id="newRecName" placeholder="Recipe Name (e.g., Avocado Toast)">
+            <input type="number" id="newRecCal" placeholder="Calories (e.g., 350)">
+            
+            <label style="font-size:12px; color:var(--text-sec); text-transform:uppercase;">Ingredients</label>
+            <div id="ingContainer"></div>
+            <button onclick="addIngInput()" style="width:100%; padding:10px; background:#2c2c2e; border:none; color:white; border-radius:8px; margin-top:5px;">+ Add Ingredient</button>
+
+            <button class="btn-primary" onclick="saveRecipe()">Save Recipe</button>
         </div>
     </div>
 
     <script>
-        // --- DONNEES ---
-        let recipes = JSON.parse(localStorage.getItem('notionRecipes')) || [];
-        let plan = JSON.parse(localStorage.getItem('mealPlan')) || {};
-        const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-        const slots = ["Matin", "Midi", "Snack", "Soir"];
+        // --- DATA & STATE ---
+        let recipes = JSON.parse(localStorage.getItem('proRecipes')) || [];
+        // Schedule: { "08:00": recipeIndex, "12:00": recipeIndex ... }
+        let schedule = JSON.parse(localStorage.getItem('proSchedule')) || {};
+        
+        // Define the "Day" structure (Time Blocks)
+        const timeBlocks = ["08:00", "10:00", "13:00", "16:00", "19:00"];
+        let currentSlot = null;
 
         // --- INIT ---
         function init() {
-            renderCalendar();
-            renderLibrary();
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            renderTimeline();
+            updateDashboard();
         }
 
-        // --- RENDU CALENDRIER ---
-        function renderCalendar() {
-            const container = document.getElementById('calendarArea');
+        // --- RENDER TIMELINE ---
+        function renderTimeline() {
+            const container = document.getElementById('timeline');
             container.innerHTML = "";
-            
-            days.forEach(day => {
-                // Créer les options une seule fois pour optimiser
-                let optionsHtml = '<option value="">--</option>';
-                recipes.forEach((r, i) => {
-                    optionsHtml += `<option value="${i}">${r.name}</option>`;
-                });
 
-                let slotsHtml = "";
-                slots.forEach(slot => {
-                    // Vérif sécurisée si plan[day] existe
-                    const currentVal = (plan[day] && plan[day][slot] !== undefined) ? plan[day][slot] : "";
-                    
-                    // On reconstruit le select avec la bonne valeur 'selected'
-                    let specificOptions = optionsHtml.replace(`value="${currentVal}"`, `value="${currentVal}" selected`);
+            timeBlocks.forEach(time => {
+                const recIdx = schedule[time];
+                const recipe = recipes[recIdx];
 
-                    slotsHtml += `
-                        <div class="slot-row">
-                            <span class="slot-label">${slot}</span>
-                            <select onchange="updatePlan('${day}', '${slot}', this.value)">
-                                ${specificOptions}
-                            </select>
+                let cardHtml = "";
+                if (recipe) {
+                    cardHtml = `
+                        <div class="meal-card" onclick="openSelector('${time}')">
+                            <div class="meal-title">${recipe.name}</div>
+                            <div class="meal-info">${recipe.ings.length} ingredients</div>
+                            <div class="meal-macros">${recipe.cal} kcal</div>
                         </div>
                     `;
-                });
+                } else {
+                    cardHtml = `
+                        <div class="meal-card empty" onclick="openSelector('${time}')">
+                            <span>+ Add Meal</span>
+                        </div>
+                    `;
+                }
 
                 container.innerHTML += `
-                    <div class="day-container">
-                        <div class="day-header">${day}</div>
-                        ${slotsHtml}
+                    <div class="time-slot">
+                        <div class="time-label">${time}</div>
+                        ${cardHtml}
                     </div>
                 `;
             });
         }
 
-        // --- MISE A JOUR DU PLAN ---
-        function updatePlan(day, slot, val) {
-            if (!plan[day]) plan[day] = {};
-            if (val === "") delete plan[day][slot];
-            else plan[day][slot] = val;
-            
-            // Nettoyage si le jour est vide
-            if (Object.keys(plan[day]).length === 0) delete plan[day];
-            
-            localStorage.setItem('mealPlan', JSON.stringify(plan));
+        // --- DASHBOARD UPDATES ---
+        function updateDashboard() {
+            let totalCal = 0;
+            let totalIng = 0;
+
+            Object.values(schedule).forEach(idx => {
+                const r = recipes[idx];
+                if(r) {
+                    totalCal += parseInt(r.cal) || 0;
+                    totalIng += r.ings.length;
+                }
+            });
+
+            // Animate numbers logic could go here, keeping it simple for now
+            document.getElementById('totalCal').innerText = totalCal;
+            document.getElementById('totalItems').innerText = totalIng;
         }
 
-        // --- GESTION RECETTES ---
-        function renderLibrary() {
-            const lib = document.getElementById('libraryArea');
-            lib.innerHTML = "";
+        // --- RECIPE MANAGEMENT ---
+        function renderRecipes() {
+            const container = document.getElementById('recipeListContainer');
+            container.innerHTML = "";
             recipes.forEach((r, i) => {
-                lib.innerHTML += `
-                    <div class="recipe-pill">
-                        <div style="flex:1" onclick="editRecipe(${i})">
-                            <span>${r.name}</span>
-                            <small>${r.cal} kcal</small>
+                container.innerHTML += `
+                    <div class="meal-card" style="margin-left:0; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div class="meal-title">${r.name}</div>
+                            <div class="meal-macros">${r.cal} kcal</div>
                         </div>
-                        <button class="action-btn" style="color:var(--danger)" onclick="deleteRecipe(${i})">✕</button>
+                        <button onclick="deleteRecipe(${i})" style="background:none; border:none; color:var(--danger); font-size:18px;">✕</button>
                     </div>
                 `;
             });
-        }
-
-        function openRecipeForm() {
-            document.getElementById('modalOverlay').style.display = "flex";
-            document.getElementById('formContent').style.display = "block";
-            document.getElementById('listContent').style.display = "none";
-            
-            // Reset form
-            document.getElementById('editIndex').value = "";
-            document.getElementById('recName').value = "";
-            document.getElementById('recCal').value = "";
-            document.getElementById('ingRowsContainer').innerHTML = "";
-            document.getElementById('modalTitle').innerText = "Nouvelle Recette";
-            addIngRow(); // Une ligne vide par défaut
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').style.display = "none";
-        }
-
-        function addIngRow(n="", q="", u="g") {
-            const div = document.createElement('div');
-            div.className = "ing-row";
-            div.innerHTML = `
-                <input type="text" class="ing-name" placeholder="Ingrédient" value="${n}">
-                <input type="number" class="ing-qty" placeholder="Qté" value="${q}">
-                <select class="ing-unit">
-                    <option ${u=='g'?'selected':''}>g</option>
-                    <option ${u=='ml'?'selected':''}>ml</option>
-                    <option ${u=='tsp'?'selected':''}>tsp</option>
-                    <option ${u=='tbsp'?'selected':''}>tbsp</option>
-                    <option ${u=='unité'?'selected':''}>uni.</option>
-                </select>
-            `;
-            document.getElementById('ingRowsContainer').appendChild(div);
         }
 
         function saveRecipe() {
-            const name = document.getElementById('recName').value;
-            const cal = document.getElementById('recCal').value;
-            const idx = document.getElementById('editIndex').value;
-            
-            // Récupération ingrédients
+            const name = document.getElementById('newRecName').value;
+            const cal = document.getElementById('newRecCal').value;
+            const rows = document.querySelectorAll('.ing-row');
             let ings = [];
-            document.querySelectorAll('#ingRowsContainer .ing-row').forEach(row => {
-                const n = row.querySelector('.ing-name').value;
-                const q = row.querySelector('.ing-qty').value;
-                const u = row.querySelector('.ing-unit').value;
-                if(n && q) ings.push({ n, q: parseFloat(q), u });
+
+            rows.forEach(row => {
+                const n = row.querySelector('.ing-n').value;
+                const q = row.querySelector('.ing-q').value;
+                const u = row.querySelector('.ing-u').value;
+                if(n && q) ings.push({n, q: parseFloat(q), u});
             });
 
-            if(!name) return alert("Le nom est obligatoire");
+            if(!name) return alert("Name required");
 
-            const newRec = { name, cal, ings };
-
-            if(idx !== "") recipes[idx] = newRec; // Edit
-            else recipes.push(newRec); // New
-
-            localStorage.setItem('notionRecipes', JSON.stringify(recipes));
-            closeModal();
-            renderLibrary();
-            renderCalendar(); // Pour mettre à jour les dropdowns
-        }
-
-        function editRecipe(i) {
-            openRecipeForm();
-            document.getElementById('modalTitle').innerText = "Modifier Recette";
-            document.getElementById('editIndex').value = i;
-            document.getElementById('recName').value = recipes[i].name;
-            document.getElementById('recCal').value = recipes[i].cal;
-            
-            const container = document.getElementById('ingRowsContainer');
-            container.innerHTML = "";
-            recipes[i].ings.forEach(ing => addIngRow(ing.n, ing.q, ing.u));
+            recipes.push({name, cal, ings});
+            localStorage.setItem('proRecipes', JSON.stringify(recipes));
+            closeDrawer('drawer-recipe');
+            renderRecipes();
         }
 
         function deleteRecipe(i) {
-            if(confirm("Supprimer ?")) {
+            if(confirm("Delete?")) {
                 recipes.splice(i, 1);
-                localStorage.setItem('notionRecipes', JSON.stringify(recipes));
-                // Doit aussi nettoyer le planning
-                // (Pour simplifier ici on garde les index mais idéalement faudrait des IDs uniques)
-                plan = {}; // Reset plan pour éviter bugs d'index décalés (méthode brutale mais sûre pour ce niveau)
-                localStorage.setItem('mealPlan', JSON.stringify(plan));
+                // Clean up schedule
+                for(let t in schedule) { if(schedule[t] == i) delete schedule[t]; }
                 
-                renderLibrary();
-                renderCalendar();
+                localStorage.setItem('proRecipes', JSON.stringify(recipes));
+                localStorage.setItem('proSchedule', JSON.stringify(schedule));
+                renderRecipes();
+                renderTimeline();
+                updateDashboard();
             }
         }
 
-        // --- GENERATION LISTE ---
-        function generateShoppingList() {
+        // --- SELECTION LOGIC ---
+        function openSelector(time) {
+            currentSlot = time;
+            document.getElementById('selectedSlotTime').innerText = time;
+            const list = document.getElementById('selectorList');
+            list.innerHTML = "";
+            
+            recipes.forEach((r, i) => {
+                list.innerHTML += `
+                    <div class="meal-card" style="margin:0; cursor:pointer;" onclick="selectRecipe(${i})">
+                        <div class="meal-title">${r.name}</div>
+                        <div class="meal-macros">${r.cal} kcal</div>
+                    </div>
+                `;
+            });
+            
+            if(recipes.length === 0) list.innerHTML = "<p style='color:gray'>No recipes created yet.</p>";
+
+            openDrawer('drawer-select');
+        }
+
+        function selectRecipe(idx) {
+            schedule[currentSlot] = idx;
+            localStorage.setItem('proSchedule', JSON.stringify(schedule));
+            closeDrawer('drawer-select');
+            renderTimeline();
+            updateDashboard();
+        }
+
+        function clearSlot() {
+            delete schedule[currentSlot];
+            localStorage.setItem('proSchedule', JSON.stringify(schedule));
+            closeDrawer('drawer-select');
+            renderTimeline();
+            updateDashboard();
+        }
+
+        // --- SHOPPING LIST ---
+        function renderShopping() {
+            const container = document.getElementById('shoppingListContainer');
             let totals = {};
 
-            // Parcours sécurisé
-            Object.values(plan).forEach(daySlots => {
-                if(!daySlots) return;
-                Object.values(daySlots).forEach(recIndex => {
-                    const rec = recipes[recIndex];
-                    if(rec && rec.ings) {
-                        rec.ings.forEach(ing => {
-                            const key = `${ing.n}|${ing.u}`;
-                            totals[key] = (totals[key] || 0) + ing.q;
-                        });
-                    }
-                });
+            Object.values(schedule).forEach(idx => {
+                const r = recipes[idx];
+                if(r) {
+                    r.ings.forEach(ing => {
+                        const k = `${ing.n}|${ing.u}`;
+                        totals[k] = (totals[k] || 0) + ing.q;
+                    });
+                }
             });
 
-            // Affichage Modal
-            document.getElementById('modalOverlay').style.display = "flex";
-            document.getElementById('formContent').style.display = "none";
-            document.getElementById('listContent').style.display = "block";
-            
-            const container = document.getElementById('shoppingListItems');
             container.innerHTML = "";
+            if(Object.keys(totals).length === 0) container.innerHTML = "<p style='color:gray'>Plan some meals first.</p>";
 
-            if(Object.keys(totals).length === 0) {
-                container.innerHTML = "<p style='color:gray; text-align:center;'>Planning vide, rien à acheter !</p>";
-                return;
-            }
-
-            for(let [key, qty] of Object.entries(totals)) {
-                const [name, unit] = key.split('|');
+            for(let [k, q] of Object.entries(totals)) {
+                const [n, u] = k.split('|');
                 container.innerHTML += `
-                    <div class="check-item">
-                        <input type="checkbox" id="chk-${name}" onchange="this.parentElement.classList.toggle('done')">
-                        <label for="chk-${name}">${name} <span style="color:var(--primary)">${qty} ${unit}</span></label>
-                    </div>
+                    <label class="check-item">
+                        <input type="checkbox" onchange="this.parentElement.classList.toggle('done')">
+                        <span style="flex:1">${n}</span>
+                        <strong style="color:var(--accent)">${q} ${u}</strong>
+                    </label>
                 `;
             }
         }
 
-        // Démarrage
+        // --- DRAWER & UI UTILS ---
+        function openDrawer(id) {
+            const el = document.getElementById(id);
+            el.style.display = 'flex';
+            setTimeout(() => { el.querySelector('.drawer').classList.add('open'); }, 10);
+        }
+
+        function closeDrawer(id) {
+            const el = document.getElementById(id);
+            el.querySelector('.drawer').classList.remove('open');
+            setTimeout(() => { el.style.display = 'none'; }, 300);
+        }
+
+        function openRecipeDrawer() {
+            document.getElementById('ingContainer').innerHTML = "";
+            document.getElementById('newRecName').value = "";
+            document.getElementById('newRecCal').value = "";
+            addIngInput();
+            openDrawer('drawer-recipe');
+        }
+
+        function addIngInput() {
+            const d = document.createElement('div');
+            d.className = 'ing-row';
+            d.innerHTML = `
+                <input class="ing-n" placeholder="Item" style="flex:2">
+                <input class="ing-q" type="number" placeholder="Qty" style="flex:1">
+                <select class="ing-u">
+                    <option>g</option><option>ml</option><option>oz</option><option>unit</option>
+                </select>
+            `;
+            document.getElementById('ingContainer').appendChild(d);
+        }
+
+        function switchView(viewName, btn) {
+            // Hide all
+            document.getElementById('view-timeline').style.display = 'none';
+            document.getElementById('view-shopping').style.display = 'none';
+            document.getElementById('view-recipes').style.display = 'none';
+            
+            // Show target
+            document.getElementById('view-'+viewName).style.display = 'block';
+
+            // Update nav
+            document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if(viewName === 'shopping') renderShopping();
+            if(viewName === 'recipes') renderRecipes();
+        }
+
         init();
-
-        // Fermer le modal si on clique sur le fond sombre
-        document.getElementById('modalOverlay').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-
     </script>
 </body>
 </html>
